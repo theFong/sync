@@ -48,10 +48,18 @@ function calculateCurrentValue(currentTime) {
   
 function initPlayers(num) {
   var socket = io();
+
   // pass num in if there are multiple audio players e.g 'player' + i
   for (var i = 0; i < num; i++) {
     (function() {
-
+      socket.on('toggle', function(type){
+        if (type === 'play') {
+          play();
+        } else {
+          pause();
+        }
+        // togglePlay();
+      });
       // Variables
       // ----------------------------------------------------------
       // audio embed object
@@ -64,7 +72,12 @@ function initPlayers(num) {
       // ----------------------------------------------------------
       if (playBtn != null) {
         playBtn.addEventListener('click', function() {
-          togglePlay()
+          if (player.paused === false) {
+            socket.emit('toggle', 'paused');
+          } else {
+            socket.emit('toggle', 'play');
+          }
+
         });
       }
 
@@ -72,18 +85,26 @@ function initPlayers(num) {
       // ----------------------------------------------------------
       function togglePlay() {
         if (player.paused === false) {
-          socket.emit('toggle', 'paused');
-          player.pause();
-          isPlaying = false;
-          $('#play-btn').removeClass('pause');
-
+          // socket.emit('toggle', 'paused');
+          pause()
         } else {
-          socket.emit('toggle', 'play');
-          player.play();
-          $('#play-btn').addClass('pause');
-          isPlaying = true;
+          // socket.emit('toggle', 'play');
+          play()
         }
       }
+
+      function play() {
+        player.play();
+        $('#play-btn').addClass('pause');
+        isPlaying = true;
+      }
+
+      function pause() {
+        player.pause();
+        isPlaying = false;
+        $('#play-btn').removeClass('pause');
+      }
+
     }());
   }
 }
