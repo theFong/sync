@@ -27,6 +27,11 @@ io.on('connection', function(socket){
     socket.on('disconnect', function(){
       console.log('user disconnected');
     });
+    socket.on('toggle', function(msg){
+        console.log('toggle: ' + msg);
+        io.emit('toggle', msg);
+      });
   });  
+
 
 module.exports.app = http;
