@@ -1,0 +1,21 @@
+extends layout
+
+block content
+    script(src="js/audio_player.js") 
+    script(src="/socket.io/socket.io.js")
+    script var socket = io();
+    div.audio-player
+        div#play-btn
+        div.audio-wrapper#player-container(href="javascript:;")
+            audio#player(ontimeupdate="initProgressBar()")
+                source(src= audio_link, type="audio/mp3")
+        div.player-controls.scrubber
+            p #{title} 
+                small by 
+                | #{author}
+            span#seekObjContainer
+                progress#seekObj(value="0", max="1")
+            br
+            small.start-time(style="float: left; position: relative; left: 15px;")
+            small.end-time(style="float: right; position: relative; right: 20px;")
+        div.album-image(style="background-image: url('"+ cover_art_link +"')")
