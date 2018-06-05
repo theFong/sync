@@ -1,5 +1,7 @@
 require('./models/Registration');
 require('./models/Audio');
+require('./models/User');
+require('./models/Content_session');
 const app = require('./app').app;
 
 // connect mongo from .env file

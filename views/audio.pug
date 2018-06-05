@@ -1,17 +1,17 @@
 extends layout
 
 block content
-    script(src="js/audio_player.js") 
     script(src="/socket.io/socket.io.js")
+    script(src="js/audio_player.js") 
     div.audio-player
         div#play-btn
         div.audio-wrapper#player-container(href="javascript:;")
-            audio#player(ontimeupdate="initProgressBar()")
+            audio#player(ontimeupdate="initProgressBar()", preload="auto")
                 source(src= audio_link, type="audio/mp3")
         div.player-controls.scrubber
             p #{title} 
                 small by 
-                | #{author}
+                | #{artist}
             span#seekObjContainer
                 progress#seekObj(value="0", max="1")
             br

@@ -14,6 +14,8 @@ const { body, validationResult } = require('express-validator/check');
 
 const Registration = mongoose.model('Registration');
 const Audio = mongoose.model('Audio');
+const User = mongoose.model('User');
+const Content_session = mongoose.model('Content_session');
 
 // index route 
 // get
@@ -54,10 +56,19 @@ router.get('/registrations', auth.connect(basic), (req, res) => {
   });
 
 router.get('/audio_test', auth.connect(basic), (req, res) => {
-  res.render('audio', {audio_link: 'http://www.lukeduncan.me/oslo.mp3',
-      title: 'Oslo',
-      author: 'Holy Esque',
-      cover_art_link: 'https://artwork-cdn.7static.com/static/img/sleeveart/00/051/614/0005161476_350.jpg'}) ;
+  Content_session.findById('5b15d2efcaf15a5ddc52f554')
+    .then((content_session) => {
+      Audio.findById(content_session.audio)
+      .then((audio) => {
+        res.render('audio', audio);
+      })
+      .catch(() => { console.log('Sorry! Something went wrong.'); });
+    })
+    .catch(() => { console.log('Sorry! Something went wrong.'); });
+  // res.render('audio', {audio_link: 'http://www.lukeduncan.me/oslo.mp3',
+  //     title: 'Oslo',
+  //     author: 'Holy Esque',
+  //     cover_art_link: 'https://artwork-cdn.7static.com/static/img/sleeveart/00/051/614/0005161476_350.jpg'}) ;
 });
 
 module.exports = router;

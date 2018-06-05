@@ -18,48 +18,37 @@ function calculateCurrentValue(currentTime) {
   return current_time;
 }
   
-  function initProgressBar() {
-    var player = document.getElementById('player');
-    var length = player.duration
-    var current_time = player.currentTime;
+function initProgressBar() {
+  var player = document.getElementById('player');
+  var length = player.duration;
+  var current_time = player.currentTime;
+  // calculate total length of value
+  var totalLength = calculateTotalValue(length);
   
-    // calculate total length of value
-    var totalLength = calculateTotalValue(length)
-    jQuery(".end-time").html(totalLength);
-  
-    // calculate current value time
-    var currentTime = calculateCurrentValue(current_time);
-    jQuery(".start-time").html(currentTime);
-  
-    var progressbar = document.getElementById('seekObj');
-    progressbar.value = (player.currentTime / player.duration);
-    progressbar.addEventListener("click", seek);
-  
-    if (player.currentTime == player.duration) {
-      $('#play-btn').removeClass('pause');
-    }
-  
-    function seek(evt) {
-      var percent = evt.offsetX / this.offsetWidth;
-      player.currentTime = percent * player.duration;
-      progressbar.value = percent / 100;
-    }
-  };
+  jQuery(".end-time").html(totalLength);
+
+  // calculate current value time
+  var currentTime = calculateCurrentValue(current_time);
+  jQuery(".start-time").html(currentTime);
+
+  var progressbar = document.getElementById('seekObj');
+  progressbar.value = (player.currentTime / player.duration);
+  progressbar.addEventListener("click", seek);
+
+  if (player.currentTime == player.duration) {
+    $('#play-btn').removeClass('pause');
+  }
+
+  function seek(evt) {
+    var percent = evt.offsetX / this.offsetWidth;
+    socket.emit('seek', percent);
+  }
+};
   
 function initPlayers(num) {
-  var socket = io();
-
   // pass num in if there are multiple audio players e.g 'player' + i
   for (var i = 0; i < num; i++) {
     (function() {
-      socket.on('toggle', function(type){
-        if (type === 'play') {
-          play();
-        } else {
-          pause();
-        }
-        // togglePlay();
-      });
       // Variables
       // ----------------------------------------------------------
       // audio embed object
@@ -68,7 +57,27 @@ function initPlayers(num) {
         isPlaying = false,
         playBtn = document.getElementById('play-btn');
 
-      // Controls Listeners
+      player.addEventListener('loadedmetadata', function() {
+        console.log("Playing " + player.src + ", for: " + player.duration + "seconds.");
+        initProgressBar();
+      });
+
+      // socket response
+      socket.on('toggle', function(type){
+        if (type === 'play') {
+          play();
+        } else {
+          pause();
+        }
+        // togglePlay();
+      });
+      socket.on('seek', function(percent){
+        var progressbar = document.getElementById('seekObj');
+        player.currentTime = percent * player.duration;
+        progressbar.value = percent / 100;
+      });
+
+        // Controls Listeners
       // ----------------------------------------------------------
       if (playBtn != null) {
         playBtn.addEventListener('click', function() {
@@ -104,10 +113,10 @@ function initPlayers(num) {
         isPlaying = false;
         $('#play-btn').removeClass('pause');
       }
-
     }());
   }
 }
+var socket = io();
 $(document).ready(function() {
   initPlayers(jQuery('#player-container').length);
 })

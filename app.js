@@ -27,9 +27,13 @@ io.on('connection', function(socket){
     socket.on('disconnect', function(){
       console.log('user disconnected');
     });
-    socket.on('toggle', function(msg){
-        console.log('toggle: ' + msg);
-        io.emit('toggle', msg);
+    socket.on('toggle', function(type){
+        console.log('toggle: ' + type);
+        io.emit('toggle', type);
+      });
+      socket.on('seek', function(percent){
+        console.log('seek: ' + percent);
+        io.emit('seek', percent);
       });
   });  
 
