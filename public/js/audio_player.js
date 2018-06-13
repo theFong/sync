@@ -17,14 +17,13 @@ function calculateCurrentValue(currentTime) {
 
   return current_time;
 }
-  
+prev_percent = 0;
 function initProgressBar() {
   var player = document.getElementById('player');
   var length = player.duration;
   var current_time = player.currentTime;
   // calculate total length of value
   var totalLength = calculateTotalValue(length);
-  
   jQuery(".end-time").html(totalLength);
 
   // calculate current value time
@@ -33,6 +32,11 @@ function initProgressBar() {
 
   var progressbar = document.getElementById('seekObj');
   progressbar.value = (player.currentTime / player.duration);
+  if(prev_percent !== progressbar.value) {
+    prev_percent = progressbar.value
+    socket.emit('current_percent', progressbar.value);
+  }
+  // send update if value changed
   progressbar.addEventListener("click", seek);
 
   if (player.currentTime == player.duration) {
@@ -56,10 +60,27 @@ function initPlayers(num) {
         player = document.getElementById('player'),
         isPlaying = false,
         playBtn = document.getElementById('play-btn');
-
+      prev_percent = 0;
       player.addEventListener('loadedmetadata', function() {
         console.log("Playing " + player.src + ", for: " + player.duration + "seconds.");
         initProgressBar();
+      });
+
+      socket.on('init', function(init_player_state){
+        console.log(init_player_state.current_time)
+        console.log(init_player_state.playing)
+        var progressbar = document.getElementById('seekObj');
+        player.currentTime = init_player_state.current_time * player.duration;
+        progressbar.value = init_player_state.current_time / 100;
+
+        if(init_player_state.playing === true)
+        {
+          play();
+        }
+        else
+        {
+          pause();
+        }
       });
 
       // socket response
@@ -117,6 +138,7 @@ function initPlayers(num) {
   }
 }
 var socket = io();
+
 $(document).ready(function() {
   initPlayers(jQuery('#player-container').length);
 })
