@@ -24,46 +24,80 @@ app.set('view engine', 'pug');
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
+var redis = require("redis"),
+    client = redis.createClient();
+
+client.on("error", function (err) {
+    console.log("Error " + err);
+});
 
 //refactor using redis and handle multiple
-var active_content_session = {  num_users: 0,
-                                player_state : { playing : false,
-                                                 current_time :  0 }  };
+// var active_content_session = {  num_users: 0,
+//                                 player_state : { playing : false,
+//                                                  current_time :  0 }  };
 
-//  KNOWN BUG THAT STATE LAGS WHEN NEW USER JOINS WHILE PLAYING
+var players = { "test_id" : { } };
+
+
+// client.hget("test_id",'playing',function (err, replies) {
+//         console.log(replies)
+// });
+// client.hset("test_id", "playing", true, redis.print)
+// client.hmset("test_id", ["num_users", 0, "playing", false, "current_time", 0], redis.print);
+
+client.hgetall("test_id", function (error, res) {
+    if (!res) {
+        client.hmset("test_id", ["num_users", 0, "playing", false, "current_time", 0], redis.print);
+        players['test_id'] = { num_users : 0,
+            playing   : false,
+            current_time : 0 };
+    } else {
+        client.hset("test_id", "num_users", 0, function (error, set) {
+            players['test_id'] = res;
+        });   
+    }
+} );
+
+// redis data structure:
+// redis_data = { "session_id0" : { num_users : 0,
+//                   playing   : false,
+//                   current_time : 0 }, 
+//                 "session_id1" : { num_users : 0,
+//                     playing   : false,
+//                     current_time : 0 }
+//                 };
+
+//  KNOWN BUG THAT STATE LAGS WHEN NEW USER JOINS WHILE PLAYING *WANT TO FIX*
 
 io.on('connection', function(socket){
     console.log('a user connected');
-    console.log(active_content_session.player_state);
-    active_content_session.num_users += 1;
-    io.to(socket.id).emit('init', active_content_session.player_state)
+    client.hincrby("test_id","num_users", 1);
+    players['test_id'].num_users += 1;
+    io.to(socket.id).emit('init', players['test_id']);
     socket.on('disconnect', function(){
       console.log('user disconnected');
-      active_content_session.num_users -= 1;
-      if (active_content_session.num_users === 0) {
-          save_player_state(active_content_session.player_state);
-      }
+      players['test_id'].num_users -= 1;
+      client.hincrby("test_id","num_users", -1)
     });
     socket.on('toggle', function(type){
         console.log('toggle: ' + type);
         if (type === 'play') {
-            active_content_session.player_state.playing = true;
+            players['test_id'].playing = true;
+            client.hset("test_id", "playing", true, );
         } else {
-            active_content_session.player_state.playing = false;
+            client.hset("test_id", "playing", false);
+            players['test_id'].playing = false;
         }
         io.emit('toggle', type);
       });
     socket.on('seek', function(percent){
-        // console.log('seek: ' + percent);
-        active_content_session.player_state.current_time = percent;
+        players['test_id'].current_time = percent;
+        client.hset("test_id", "current_time", percent);
         io.emit('seek', percent);
     });
     socket.on('current_percent', function(percent){
-        console.log(active_content_session.player_state);
-        if(percent !== active_content_session.player_state.current_time)
-        {
-            active_content_session.player_state.current_time = percent;
-        }
+        players['test_id'].current_time = percent;
+        client.hset("test_id", "current_time", percent);
     });
   });
   

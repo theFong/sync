@@ -6,6 +6,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+#redis
+redis-stable
+
 # Runtime data
 pids
 *.pid
