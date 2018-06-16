@@ -2,7 +2,8 @@ extends layout
 
 block content
     script(src="/socket.io/socket.io.js")
-    script(src="js/audio_player.js") 
+    script(src="js/audio_player.js")
+    title= `${session_name}`
     div.audio-player
         div#play-btn
         div.audio-wrapper#player-container(href="javascript:;")

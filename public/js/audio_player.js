@@ -61,7 +61,7 @@ function initPlayers(num) {
         isPlaying = false,
         playBtn = document.getElementById('play-btn');
       prev_percent = 0;
-      player.addEventListener('loadedmetadata', function() {
+      player.addEventListener('loadeddata', function() {
         console.log("Playing " + player.src + ", for: " + player.duration + "seconds.");
         initProgressBar();
       });
